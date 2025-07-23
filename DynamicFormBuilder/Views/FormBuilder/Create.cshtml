@@ -81,31 +81,38 @@
                 }
 
                 let formFields = [];
-                let hasValidationErrors = false; // Flag for form-level validation
+                let hasValidationErrors = false;
 
                 $('#formFieldsContainer .form-field-item').each(function () {
-                    let label = $(this).find('.field-label').val();
-                    let isRequired = $(this).find('.is-required-checkbox').is(':checked');
-                    let fieldType = $(this).find('.field-type-radio:checked').val(); // NEW: Get selected field type
+                    let selectedLabelName = $(this).find('.label-type-select').val(); // Get selected label *type*
+                    let labelText;
 
-                    if (!label) {
-                        swal("Validation Error", "Please enter a label for all dropdown fields.", "warning");
+                    if (selectedLabelName === 'Custom Label') {
+                        labelText = $(this).find('.custom-label-text-input').val();
+                        if (!labelText) {
+                            swal("Validation Error", "Please enter text for the 'Custom Label' field.", "warning");
+                            hasValidationErrors = true;
+                            return false; // Break out of .each()
+                        }
+                    } else {
+                        labelText = selectedLabelName; // Use the selected predefined name as the label
+                    }
+
+                    let isRequired = $(this).find('.is-required-checkbox').is(':checked');
+                    let selectedOptionValue = $(this).find('.field-options-dropdown').val(); // Get value from the *currently active* dropdown
+
+                    // Basic validation for dropdown selection if required
+                    if (isRequired && !selectedOptionValue) {
+                        swal("Validation Error", `Please select an option for the '${labelText}' field.`, "warning");
                         hasValidationErrors = true;
                         return false; // Break out of .each()
                     }
 
-                    let selectedOptionValue = '';
-                    if (fieldType === 'generic') {
-                        selectedOptionValue = $(this).find('.field-options').val();
-                    } else if (fieldType === 'country') {
-                        selectedOptionValue = $(this).find('.field-country-options').val();
-                    }
-
                     formFields.push({
-                        Label: label,
+                        Label: labelText, // The actual text label to display
                         IsRequired: isRequired,
-                        FieldType: fieldType, // NEW: Include FieldType
-                        SelectedOption: selectedOptionValue // This will be saved as the default selected on preview if any. For creation, it's typically empty.
+                        SelectedLabelName: selectedLabelName, // The type of label selected (e.g., "Country", "Custom Label")
+                        SelectedOption: selectedOptionValue // The value chosen from the options dropdown
                     });
                 });
 
@@ -123,7 +130,6 @@
                     FormFields: formFields
                 };
 
-                // ... (rest of your AJAX call for SaveForm)
                 $.ajax({
                     url: '@Url.Action("SaveForm", "FormBuilder")',
                     type: 'POST',

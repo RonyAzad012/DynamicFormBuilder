@@ -11,6 +11,7 @@
     .required-label::after {
         content: " *";
         color: red;
+        margin-left: 2px; /* Small space between label and asterisk */
     }
 </style>
 
@@ -30,19 +31,8 @@
                     <div class="form-group mb-3">
                         <label for="field_@field.Id" class="@(field.IsRequired ? "required-label" : "")">@field.Label</label>
 
-                        @if (field.FieldType == "generic")
-                        {
-                            <select class="form-control preview-dropdown"
-                                    data-field-id="@field.Id"
-                                    data-is-required="@field.IsRequired.ToString().ToLower()">
-                                <option value="">Select Item</option>
-                                @foreach (var option in field.Options)
-                                {
-                                    <option value="@option" selected="@(field.SelectedOption == option)">@option</option>
-                                }
-                            </select>
-                        }
-                        else if (field.FieldType == "country")
+                        @* Dynamically render dropdown based on SelectedLabelName (stored in DB as SelectedLabelType) *@
+                        @if (field.SelectedLabelName == "Country")
                         {
                             <select class="form-control preview-dropdown"
                                     data-field-id="@field.Id"
@@ -54,7 +44,44 @@
                                 }
                             </select>
                         }
+                        else if (field.SelectedLabelName == "State")
+                        {
+                            <select class="form-control preview-dropdown"
+                                    data-field-id="@field.Id"
+                                    data-is-required="@field.IsRequired.ToString().ToLower()">
+                                <option value="">-- Select a State --</option>
+                                @foreach (var state in field.StateOptions)
+                                {
+                                    <option value="@state" selected="@(field.SelectedOption == state)">@state</option>
+                                }
+                            </select>
+                        }
+                        else if (field.SelectedLabelName == "Occupation")
+                        {
+                            <select class="form-control preview-dropdown"
+                                    data-field-id="@field.Id"
+                                    data-is-required="@field.IsRequired.ToString().ToLower()">
+                                <option value="">-- Select an Occupation --</option>
+                                @foreach (var occupation in field.OccupationOptions)
+                                {
+                                    <option value="@occupation" selected="@(field.SelectedOption == occupation)">@occupation</option>
+                                }
+                            </select>
+                        }
+                        else // For "Custom Label" or any generic field type
+                        {
+                            <select class="form-control preview-dropdown"
+                                    data-field-id="@field.Id"
+                                    data-is-required="@field.IsRequired.ToString().ToLower()">
+                                <option value="">Select Item</option>
+                                @foreach (var option in field.GenericOptions)
+                                {
+                                    <option value="@option" selected="@(field.SelectedOption == option)">@option</option>
+                                }
+                            </select>
+                        }
 
+                        @* Red asterisk for required fields (already implemented via CSS, but this message can provide extra feedback) *@
                         @if (field.IsRequired)
                         {
                             <small class="form-text text-danger required-field-message" style="display:none;">This field is required.</small>

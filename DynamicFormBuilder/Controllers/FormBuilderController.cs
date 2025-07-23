@@ -21,8 +21,8 @@ namespace DynamicFormBuilder.Controllers
         public IActionResult Create()
         {
             var model = new FormViewModel();
-            // Add at least one default field for demonstration if desired
-            // model.FormFields.Add(new FormFieldViewModel { Label = "Level 1", Options = new List<string> { "Option 1", "Option 2", "Option 3" } });
+            // You might want to add a default field here or let the user add it.
+            // model.FormFields.Add(new FormFieldViewModel { SelectedLabelName = "Custom Label", Label = "Field 1" });
             return View(model);
         }
 
@@ -37,9 +37,9 @@ namespace DynamicFormBuilder.Controllers
                     Title = model.Title,
                     FormFields = model.FormFields.Select(fvm => new FormField
                     {
-                        Label = fvm.Label,
+                        Label = fvm.Label, // This now stores the actual label text (e.g., "Country" or "My Custom Field")
                         IsRequired = fvm.IsRequired,
-                        FieldType = fvm.FieldType, // NEW: Map FieldType
+                        SelectedLabelType = fvm.SelectedLabelName, // NEW: Store the type of label/options (e.g., "Country", "Custom Label")
                         SelectedOption = fvm.SelectedOption // This will be null initially, populated on preview save
                     }).ToList()
                 };
@@ -49,7 +49,6 @@ namespace DynamicFormBuilder.Controllers
                 return Json(new { success = true, message = "Form saved successfully!" });
             }
 
-            // If model state is not valid, return errors
             var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
             return Json(new { success = false, message = "Validation errors", errors = errors });
         }
@@ -57,9 +56,9 @@ namespace DynamicFormBuilder.Controllers
         // GET: FormBuilder/GetFormFieldPartial - Returns a partial view for a new dropdown field
         public IActionResult GetFormFieldPartial()
         {
+            // When returning a new partial, provide all possible lists for client-side rendering
             return PartialView("_FormFieldPartial", new FormFieldViewModel());
         }
-
 
         // GET: FormBuilder - Displays the list of saved forms
         public async Task<IActionResult> Index()
@@ -67,8 +66,6 @@ namespace DynamicFormBuilder.Controllers
             var forms = await _context.Forms.ToListAsync();
             return View(forms);
         }
-
-        // ... (existing code)
 
         // GET: FormBuilder/Preview/5 - Displays a saved form for preview
         public async Task<IActionResult> Preview(int? id)
@@ -87,6 +84,9 @@ namespace DynamicFormBuilder.Controllers
                 return NotFound();
             }
 
+            // Create a FormFieldViewModel instance to access the static lists of options
+            var optionsProvider = new FormFieldViewModel();
+
             var formViewModel = new FormViewModel
             {
                 Id = form.Id,
@@ -94,13 +94,17 @@ namespace DynamicFormBuilder.Controllers
                 FormFields = form.FormFields.Select(ff => new FormFieldViewModel
                 {
                     Id = ff.Id,
-                    Label = ff.Label,
+                    Label = ff.Label, // The actual label text
                     IsRequired = ff.IsRequired,
                     SelectedOption = ff.SelectedOption,
-                    FieldType = ff.FieldType, // NEW: Pass FieldType to ViewModel for preview rendering
-                    // Ensure options are available for display based on FieldType
-                    Options = new List<string> { "Option 1", "Option 2", "Option 3" }, // Generic options
-                    CountryOptions = new FormFieldViewModel().CountryOptions // All possible country options
+                    SelectedLabelName = ff.SelectedLabelType, // NEW: Pass the saved label type
+
+                    // Pass all possible option lists so the Preview view can render the correct one
+                    GenericOptions = optionsProvider.GenericOptions,
+                    CountryOptions = optionsProvider.CountryOptions,
+                    StateOptions = optionsProvider.StateOptions,
+                    OccupationOptions = optionsProvider.OccupationOptions
+                    // Add other option lists if you expand the predefined labels
                 }).ToList()
             };
 
@@ -141,4 +145,3 @@ namespace DynamicFormBuilder.Controllers
         }
     }
 }
-    

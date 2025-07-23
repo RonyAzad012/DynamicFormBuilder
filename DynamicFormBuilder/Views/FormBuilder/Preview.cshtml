@@ -1,0 +1,127 @@
+﻿@model DynamicFormBuilder.Models.FormViewModel
+
+@{
+    ViewData["Title"] = "Preview Form";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+
+<style>
+    .required-label::after {
+        content: " *";
+        color: red;
+    }
+</style>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">@Model.Title</h6>
+    </div>
+    <div class="card-body">
+        <form id="previewForm">
+            <input type="hidden" id="formId" value="@Model.Id" />
+
+            @if (Model.FormFields != null && Model.FormFields.Any())
+            {
+                @for (int i = 0; i < Model.FormFields.Count; i++)
+                {
+                    var field = Model.FormFields[i];
+                    <div class="form-group mb-3">
+                        <label for="field_@field.Id" class="@(field.IsRequired ? "required-label" : "")">@field.Label</label>
+                        <select class="form-control preview-dropdown"
+                                data-field-id="@field.Id"
+                                data-is-required="@field.IsRequired.ToString().ToLower()">
+                            <option value="">Select Item</option>
+                            @foreach (var option in field.Options)
+                            {
+                                <option value="@option" selected="@(field.SelectedOption == option)">@option</option>
+                            }
+                        </select>
+                        @if (field.IsRequired)
+                        {
+                            <small class="form-text text-danger required-field-message" style="display:none;">This field is required.</small>
+                        }
+                    </div>
+                }
+            }
+            else
+            {
+                <p>No dropdown fields defined for this form.</p>
+            }
+
+            <div class="mt-4">
+                <button type="submit" class="btn btn-success" id="submitPreviewBtn">
+                    <i class="fas fa-check"></i> Submit
+                </button>
+                <button type="button" class="btn btn-secondary" onclick="window.location.href='@Url.Action("Index", "FormBuilder")'">
+                    <i class="fas fa-arrow-left"></i> Back to List
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            // Handle preview form submission via AJAX
+            $('#previewForm').on('submit', function (e) {
+                e.preventDefault();
+
+                let formId = $('#formId').val();
+                let formFieldsData = [];
+                let isValid = true;
+
+                $('.preview-dropdown').each(function () {
+                    let fieldId = $(this).data('field-id');
+                    let selectedOption = $(this).val();
+                    let isRequired = $(this).data('is-required');
+                    let $requiredMessage = $(this).siblings('.required-field-message');
+
+                    if (isRequired && !selectedOption) {
+                        $requiredMessage.show();
+                        isValid = false;
+                    } else {
+                        $requiredMessage.hide();
+                    }
+
+                    formFieldsData.push({
+                        Id: fieldId,
+                        SelectedOption: selectedOption
+                    });
+                });
+
+                if (!isValid) {
+                    swal("Validation Error", "Please fill in all required fields.", "warning");
+                    return;
+                }
+
+                let formData = {
+                    Id: formId,
+                    FormFields: formFieldsData
+                };
+
+                $.ajax({
+                    url: '@Url.Action("SubmitPreview", "FormBuilder")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function (response) {
+                        if (response.success) {
+                            swal("Success!", response.message, "success")
+                                .then((value) => {
+                                    window.location.href = '@Url.Action("Index", "FormBuilder")';
+                                });
+                        } else {
+                            swal("Error!", response.message, "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        swal("Error!", "An error occurred while submitting the form: " + error, "error");
+                    }
+                });
+            });
+        });
+    </script>
+}

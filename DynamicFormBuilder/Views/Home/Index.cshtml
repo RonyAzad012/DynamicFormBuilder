@@ -1,0 +1,134 @@
+﻿@{
+    ViewData["Title"] = "Welcome to Form Builder";
+}
+
+<style>
+    /* Custom styles for the home page */
+    body {
+        background-color: #f8f9fa; /* Light gray background */
+    }
+
+    .hero-section {
+        background: linear-gradient(to right, #6a11cb 0%, #2575fc 100%); /* Vibrant gradient */
+        color: white;
+        padding: 100px 0;
+        border-radius: 15px; /* Rounded corners */
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Soft shadow */
+        margin-top: 50px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .hero-section::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: rgba(255, 255, 255, 0.05);
+        transform: rotate(45deg);
+        pointer-events: none;
+    }
+
+    .hero-section h1 {
+        font-size: 3.5rem;
+        font-weight: 700;
+        margin-bottom: 20px;
+    }
+
+    .hero-section p {
+        font-size: 1.2rem;
+        opacity: 0.9;
+        margin-bottom: 40px;
+    }
+
+    .action-buttons .btn {
+        margin: 15px;
+        padding: 15px 30px;
+        font-size: 1.1rem;
+        border-radius: 30px; /* Pill-shaped buttons */
+        transition: all 0.3s ease;
+    }
+
+    .action-buttons .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        box-shadow: 0 5px 15px rgba(0, 123, 255, 0.3);
+    }
+
+    .action-buttons .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+        transform: translateY(-3px); /* Subtle lift effect */
+    }
+
+    .action-buttons .btn-secondary {
+        background-color: #6c757d;
+        border-color: #6c757d;
+        box-shadow: 0 5px 15px rgba(108, 117, 125, 0.3);
+    }
+
+    .action-buttons .btn-secondary:hover {
+        background-color: #5a6268;
+        border-color: #5a6268;
+        transform: translateY(-3px);
+    }
+
+    .icon-feature {
+        margin-top: 60px;
+        color: #495057;
+    }
+
+    .icon-feature i {
+        font-size: 3rem;
+        color: #2575fc; /* Primary color for icons */
+        margin-bottom: 15px;
+    }
+
+    .icon-feature h3 {
+        font-size: 1.5rem;
+        font-weight: 600;
+        margin-bottom: 10px;
+    }
+
+    .icon-feature p {
+        font-size: 1rem;
+        color: #6c757d;
+    }
+</style>
+
+<div class="container text-center">
+    <div class="hero-section">
+        <h1 class="animate__animated animate__fadeInDown">Empower Your Data Collection</h1>
+        <p class="animate__animated animate__fadeInUp animate__delay-0-5s">
+            Effortlessly create, manage, and preview dynamic forms for all your needs.
+        </p>
+        <div class="action-buttons animate__animated animate__zoomIn animate__delay-1s">
+            <a asp-controller="FormBuilder" asp-action="Create" class="btn btn-primary">
+                <i class="fas fa-plus-circle"></i> Build a New Form
+            </a>
+            <a asp-controller="FormBuilder" asp-action="Index" class="btn btn-secondary">
+                <i class="fas fa-list-alt"></i> View All Forms
+            </a>
+        </div>
+    </div>
+
+    <div class="row icon-feature">
+        <div class="col-md-4">
+            <i class="fas fa-magic"></i>
+            <h3>Dynamic Creation</h3>
+            <p>Easily add multiple dropdown fields and set required options on the fly.</p>
+        </div>
+        <div class="col-md-4">
+            <i class="fas fa-database"></i>
+            <h3>Seamless Storage</h3>
+            <p>Your form data, including titles and selections, is securely saved in the database.</p>
+        </div>
+        <div class="col-md-4">
+            <i class="fas fa-eye"></i>
+            <h3>Intuitive Preview</h3>
+            <p>Preview forms with clear indications for required fields and selected items.</p>
+        </div>
+    </div>
+</div>

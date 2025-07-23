@@ -1,0 +1,133 @@
+﻿@{
+    ViewData["Title"] = "Create Dynamic Form";
+}
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.js"></script>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">Dynamic Form Builder</h6>
+    </div>
+    <div class="card-body">
+        <form id="dynamicForm">
+            <div class="form-group">
+                <label for="formTitle">Form Title</label>
+                <input type="text" class="form-control" id="formTitle" placeholder="Form Title" required>
+            </div>
+
+            <div id="formFieldsContainer">
+                @* Initial fields can be added here or dynamically via JS *@
+            </div>
+
+            <div class="mt-4">
+                <button type="button" class="btn btn-info" id="addMoreBtn">
+                    <i class="fas fa-plus"></i> Add More
+                </button>
+                <button type="submit" class="btn btn-success" id="saveFormBtn">
+                    <i class="fas fa-save"></i> Save
+                </button>
+                <button type="button" class="btn btn-secondary" id="clearFormBtn">
+                    <i class="fas fa-eraser"></i> Clear
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        $(document).ready(function () {
+            let fieldCounter = 0; // To uniquely identify fields if needed
+
+            // Function to add a new form field
+            function addFormField() {
+                $.ajax({
+                    url: '@Url.Action("GetFormFieldPartial", "FormBuilder")',
+                    type: 'GET',
+                    success: function (data) {
+                        $('#formFieldsContainer').append(data);
+                    },
+                    error: function (xhr, status, error) {
+                        swal("Error", "Failed to load form field: " + error, "error");
+                    }
+                });
+            }
+
+            // Add more button click handler
+            $('#addMoreBtn').on('click', function () {
+                addFormField();
+            });
+
+            // Initial add for the first field if needed
+            // addFormField(); // Uncomment to add a field on page load
+
+            // Clear Form button handler
+            $('#clearFormBtn').on('click', function () {
+                $('#formTitle').val('');
+                $('#formFieldsContainer').empty();
+                swal("Cleared!", "Form has been cleared.", "info");
+            });
+
+            // Handle form submission via AJAX
+            $('#dynamicForm').on('submit', function (e) {
+                e.preventDefault();
+
+                let formTitle = $('#formTitle').val();
+                if (!formTitle) {
+                    swal("Validation Error", "Please enter a Form Title.", "warning");
+                    return;
+                }
+
+                let formFields = [];
+                $('#formFieldsContainer .form-field-item').each(function () {
+                    let label = $(this).find('.field-label').val();
+                    let isRequired = $(this).find('.is-required-checkbox').is(':checked');
+
+                    if (!label) {
+                        swal("Validation Error", "Please enter a label for all dropdown fields.", "warning");
+                        return false; // Stop submission if a label is missing
+                    }
+
+                    formFields.push({
+                        Label: label,
+                        IsRequired: isRequired
+                    });
+                });
+
+                if (formFields.length === 0) {
+                    swal("Validation Error", "Please add at least one dropdown field.", "warning");
+                    return;
+                }
+
+
+                let formData = {
+                    Title: formTitle,
+                    FormFields: formFields
+                };
+
+                $.ajax({
+                    url: '@Url.Action("SaveForm", "FormBuilder")',
+                    type: 'POST',
+                    contentType: 'application/json',
+                    data: JSON.stringify(formData),
+                    success: function (response) {
+                        if (response.success) {
+                            swal("Success!", response.message, "success")
+                                .then((value) => {
+                                    // Optionally redirect or clear form
+                                    window.location.href = '@Url.Action("Index", "FormBuilder")';
+                                });
+                        } else {
+                            let errorMessage = response.message + (response.errors ? "\n" + response.errors.join("\n") : "");
+                            swal("Error!", errorMessage, "error");
+                        }
+                    },
+                    error: function (xhr, status, error) {
+                        swal("Error!", "An error occurred while saving the form: " + error, "error");
+                    }
+                });
+            });
+        });
+    </script>
+}

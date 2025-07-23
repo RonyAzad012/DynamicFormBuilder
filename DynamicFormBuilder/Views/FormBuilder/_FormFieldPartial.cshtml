@@ -1,84 +1,173 @@
 ﻿@model DynamicFormBuilder.Models.FormFieldViewModel
+@{
+    // Generate unique IDs for radio buttons to avoid conflicts when multiple partials are loaded
+    var uniqueId = Guid.NewGuid().ToString("N");
+}
 
 <div class="form-group form-field-item border p-3 mb-3 rounded shadow-sm">
     <div class="d-flex justify-content-between align-items-center mb-2">
-        <label>Dropdown Field</label>
+        <label>Dropdown Field Configuration</label>
         <button type="button" class="btn btn-danger btn-sm remove-field-btn">
             <i class="fas fa-times"></i> Remove
         </button>
     </div>
+
+    @* Label Type Selection *@
     <div class="form-group">
-        <label>Label:</label>
-        <input type="text" class="form-control field-label" placeholder="e.g., Select Country" required>
+        <label for="labelTypeSelect_@uniqueId">Choose Label:</label>
+        <select class="form-control label-type-select" id="labelTypeSelect_@uniqueId">
+            @foreach (var labelName in Model.PredefinedLabels)
+            {
+                <option value="@labelName" selected="@(Model.SelectedLabelName == labelName)">@labelName</option>
+            }
+        </select>
     </div>
+
+    @* Custom Label Input (initially shown for "Custom Label" type) *@
+    <div class="form-group custom-label-input" style="@(Model.SelectedLabelName == "Custom Label" ? "" : "display:none;")">
+        <label>Custom Label Text:</label>
+        <input type="text" class="form-control custom-label-text-input" placeholder="e.g., My Custom Field" value="@Model.Label">
+    </div>
+
     <div class="form-check">
-        <input type="checkbox" class="form-check-input is-required-checkbox" id="isRequired_@Guid.NewGuid()">
-        <label class="form-check-label" for="isRequired_@Guid.NewGuid()">Required</label>
+        <input type="checkbox" class="form-check-input is-required-checkbox" id="isRequired_@uniqueId" @(Model.IsRequired ? "checked" : "")>
+        <label class="form-check-label" for="isRequired_@uniqueId">Required Field</label>
     </div>
 
-    @* NEW: Field Type Selection (Radio Buttons) *@
-    <div class="form-group mt-3">
-        <label>Field Type:</label>
-        <div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input field-type-radio" type="radio" name="fieldType_@Guid.NewGuid()" id="fieldTypeGeneric_@Guid.NewGuid()" value="generic" checked>
-                <label class="form-check-label" for="fieldTypeGeneric_@Guid.NewGuid()">Generic Options</label>
-            </div>
-            <div class="form-check form-check-inline">
-                <input class="form-check-input field-type-radio" type="radio" name="fieldType_@Guid.NewGuid()" id="fieldTypeCountry_@Guid.NewGuid()" value="country">
-                <label class="form-check-label" for="fieldTypeCountry_@Guid.NewGuid()">Country List</label>
-            </div>
-        </div>
-    </div>
-
-    @* Dynamic Options Container *@
+    @* Dynamic Options Container - This will swap based on label type *@
     <div class="form-group mt-2 field-options-container">
-        @* Initially show Generic Options *@
-        <div class="generic-options">
-            <label>Options (Fixed):</label>
-            <select class="form-control field-options">
-                @foreach (var option in Model.Options)
-                {
-                    <option value="@option">@option</option>
-                }
-            </select>
-            <small class="form-text text-muted">Options are fixed: Option 1, Option 2, Option 3</small>
-        </div>
-
-        <div class="country-options" style="display:none;">
-            <label>Countries:</label>
-            <select class="form-control field-country-options">
-                <option value="">-- Select a Country --</option>
-                @foreach (var country in Model.CountryOptions)
-                {
-                    <option value="@country">@country</option>
-                }
-            </select>
-        </div>
+        @* Render initial options based on default SelectedLabelName *@
+        @if (Model.SelectedLabelName == "Country")
+        {
+            <div class="options-country">
+                <label>Countries:</label>
+                <select class="form-control field-options-dropdown">
+                    <option value="">-- Select a Country --</option>
+                    @foreach (var country in Model.CountryOptions)
+                    {
+                        <option value="@country">@country</option>
+                    }
+                </select>
+            </div>
+        }
+        else if (Model.SelectedLabelName == "State")
+        {
+            <div class="options-state">
+                <label>States:</label>
+                <select class="form-control field-options-dropdown">
+                    <option value="">-- Select a State --</option>
+                    @foreach (var state in Model.StateOptions)
+                    {
+                        <option value="@state">@state</option>
+                    }
+                </select>
+            </div>
+        }
+        else if (Model.SelectedLabelName == "Occupation")
+        {
+            <div class="options-occupation">
+                <label>Occupations:</label>
+                <select class="form-control field-options-dropdown">
+                    <option value="">-- Select an Occupation --</option>
+                    @foreach (var occupation in Model.OccupationOptions)
+                    {
+                        <option value="@occupation">@occupation</option>
+                    }
+                </select>
+            </div>
+        }
+        else // Default or "Custom Label"
+        {
+            <div class="options-generic">
+                <label>Generic Options:</label>
+                <select class="form-control field-options-dropdown">
+                    @foreach (var option in Model.GenericOptions)
+                    {
+                        <option value="@option">@option</option>
+                    }
+                </select>
+            </div>
+        }
+        <small class="form-text text-muted">Options dynamically adjust based on your label selection.</small>
     </div>
 </div>
 
 <script>
-    // Attach event listener for the remove button when the partial view is loaded
-    $(document).off('click', '.remove-field-btn').on('click', '.remove-field-btn', function () {
+    // Event listener for remove button (attach once per partial load)
+    $(document).off('click', '.form-field-item .remove-field-btn').on('click', '.form-field-item .remove-field-btn', function () {
         $(this).closest('.form-field-item').remove();
     });
 
-    // Handle field type change within this partial view instance
-    $(document).off('change', '.form-field-item .field-type-radio').on('change', '.form-field-item .field-type-radio', function () {
+    // Event listener for label type selection change
+    $(document).off('change', '.form-field-item .label-type-select').on('change', '.form-field-item .label-type-select', function () {
         var $parentContainer = $(this).closest('.form-field-item');
-        var selectedType = $(this).val();
+        var selectedLabelType = $(this).val();
+        var $optionsContainer = $parentContainer.find('.field-options-container');
 
-        if (selectedType === 'generic') {
-            $parentContainer.find('.generic-options').show();
-            $parentContainer.find('.country-options').hide();
-            // Clear country selection if it was previously selected
-            $parentContainer.find('.field-country-options').val('');
+        // Hide all option containers first
+        $optionsContainer.find('> div').hide();
+        $parentContainer.find('.custom-label-input').hide();
+
+        let newHtml = '';
+        if (selectedLabelType === 'Country') {
+            newHtml = `
+                    <div class="options-country">
+                        <label>Countries:</label>
+                        <select class="form-control field-options-dropdown">
+                            <option value="">-- Select a Country --</option>
+    @foreach (var country in Model.CountryOptions)
+    {
+        <option value="@country">@country</option>
+    }
+                        </select>
+                    </div>`;
+        } else if (selectedLabelType === 'State') {
+            newHtml = `
+                    <div class="options-state">
+                        <label>States:</label>
+                        <select class="form-control field-options-dropdown">
+                            <option value="">-- Select a State --</option>
+    @foreach (var state in Model.StateOptions)
+    {
+        <option value="@state">@state</option>
+    }
+                        </select>
+                    </div>`;
+        } else if (selectedLabelType === 'Occupation') {
+            newHtml = `
+                    <div class="options-occupation">
+                        <label>Occupations:</label>
+                        <select class="form-control field-options-dropdown">
+                            <option value="">-- Select an Occupation --</option>
+    @foreach (var occupation in Model.OccupationOptions)
+    {
+        <option value="@occupation">@occupation</option>
+    }
+                        </select>
+                    </div>`;
+        } else { // 'Custom Label' or any other default
+            $parentContainer.find('.custom-label-input').show(); // Show custom label input
+            newHtml = `
+                    <div class="options-generic">
+                        <label>Generic Options:</label>
+                        <select class="form-control field-options-dropdown">
+    @foreach (var option in Model.GenericOptions)
+    {
+        <option value="@option">@option</option>
+    }
+                        </select>
+                    </div>`;
+        }
+        $optionsContainer.html(newHtml); // Replace content
+    });
+
+    // Initial check to show/hide custom label input on load if "Custom Label" is default
+    $(function () {
+        var $parentContainer = $('#labelTypeSelect_@uniqueId').closest('.form-field-item');
+        if ($('#labelTypeSelect_@uniqueId').val() === 'Custom Label') {
+            $parentContainer.find('.custom-label-input').show();
         } else {
-            $parentContainer.find('.generic-options').hide();
-            $parentContainer.find('.country-options').show();
-            // Clear generic selection if it was previously selected
-            $parentContainer.find('.field-options').val($parentContainer.find('.field-options option:first').val());
+            $parentContainer.find('.custom-label-input').hide();
         }
     });
 </script>

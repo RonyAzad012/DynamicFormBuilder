@@ -15,15 +15,46 @@
         <input type="checkbox" class="form-check-input is-required-checkbox" id="isRequired_@Guid.NewGuid()">
         <label class="form-check-label" for="isRequired_@Guid.NewGuid()">Required</label>
     </div>
-    <div class="form-group mt-2">
-        <label>Options (Fixed):</label>
-        <select class="form-control field-options" disabled>
-            @foreach (var option in Model.Options)
-            {
-                <option value="@option">@option</option>
-            }
-        </select>
-        <small class="form-text text-muted">Options are fixed: Option 1, Option 2, Option 3</small>
+
+    @* NEW: Field Type Selection (Radio Buttons) *@
+    <div class="form-group mt-3">
+        <label>Field Type:</label>
+        <div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input field-type-radio" type="radio" name="fieldType_@Guid.NewGuid()" id="fieldTypeGeneric_@Guid.NewGuid()" value="generic" checked>
+                <label class="form-check-label" for="fieldTypeGeneric_@Guid.NewGuid()">Generic Options</label>
+            </div>
+            <div class="form-check form-check-inline">
+                <input class="form-check-input field-type-radio" type="radio" name="fieldType_@Guid.NewGuid()" id="fieldTypeCountry_@Guid.NewGuid()" value="country">
+                <label class="form-check-label" for="fieldTypeCountry_@Guid.NewGuid()">Country List</label>
+            </div>
+        </div>
+    </div>
+
+    @* Dynamic Options Container *@
+    <div class="form-group mt-2 field-options-container">
+        @* Initially show Generic Options *@
+        <div class="generic-options">
+            <label>Options (Fixed):</label>
+            <select class="form-control field-options">
+                @foreach (var option in Model.Options)
+                {
+                    <option value="@option">@option</option>
+                }
+            </select>
+            <small class="form-text text-muted">Options are fixed: Option 1, Option 2, Option 3</small>
+        </div>
+
+        <div class="country-options" style="display:none;">
+            <label>Countries:</label>
+            <select class="form-control field-country-options">
+                <option value="">-- Select a Country --</option>
+                @foreach (var country in Model.CountryOptions)
+                {
+                    <option value="@country">@country</option>
+                }
+            </select>
+        </div>
     </div>
 </div>
 
@@ -31,5 +62,23 @@
     // Attach event listener for the remove button when the partial view is loaded
     $(document).off('click', '.remove-field-btn').on('click', '.remove-field-btn', function () {
         $(this).closest('.form-field-item').remove();
+    });
+
+    // Handle field type change within this partial view instance
+    $(document).off('change', '.form-field-item .field-type-radio').on('change', '.form-field-item .field-type-radio', function () {
+        var $parentContainer = $(this).closest('.form-field-item');
+        var selectedType = $(this).val();
+
+        if (selectedType === 'generic') {
+            $parentContainer.find('.generic-options').show();
+            $parentContainer.find('.country-options').hide();
+            // Clear country selection if it was previously selected
+            $parentContainer.find('.field-country-options').val('');
+        } else {
+            $parentContainer.find('.generic-options').hide();
+            $parentContainer.find('.country-options').show();
+            // Clear generic selection if it was previously selected
+            $parentContainer.find('.field-options').val($parentContainer.find('.field-options option:first').val());
+        }
     });
 </script>

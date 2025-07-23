@@ -69,6 +69,7 @@
                 swal("Cleared!", "Form has been cleared.", "info");
             });
 
+            
             // Handle form submission via AJAX
             $('#dynamicForm').on('submit', function (e) {
                 e.preventDefault();
@@ -80,32 +81,49 @@
                 }
 
                 let formFields = [];
+                let hasValidationErrors = false; // Flag for form-level validation
+
                 $('#formFieldsContainer .form-field-item').each(function () {
                     let label = $(this).find('.field-label').val();
                     let isRequired = $(this).find('.is-required-checkbox').is(':checked');
+                    let fieldType = $(this).find('.field-type-radio:checked').val(); // NEW: Get selected field type
 
                     if (!label) {
                         swal("Validation Error", "Please enter a label for all dropdown fields.", "warning");
-                        return false; // Stop submission if a label is missing
+                        hasValidationErrors = true;
+                        return false; // Break out of .each()
+                    }
+
+                    let selectedOptionValue = '';
+                    if (fieldType === 'generic') {
+                        selectedOptionValue = $(this).find('.field-options').val();
+                    } else if (fieldType === 'country') {
+                        selectedOptionValue = $(this).find('.field-country-options').val();
                     }
 
                     formFields.push({
                         Label: label,
-                        IsRequired: isRequired
+                        IsRequired: isRequired,
+                        FieldType: fieldType, // NEW: Include FieldType
+                        SelectedOption: selectedOptionValue // This will be saved as the default selected on preview if any. For creation, it's typically empty.
                     });
                 });
+
+                if (hasValidationErrors) {
+                    return; // Stop submission if there were validation errors in the loop
+                }
 
                 if (formFields.length === 0) {
                     swal("Validation Error", "Please add at least one dropdown field.", "warning");
                     return;
                 }
 
-
                 let formData = {
                     Title: formTitle,
                     FormFields: formFields
                 };
 
+                // ... (rest of your AJAX call for SaveForm)
                 $.ajax({
                     url: '@Url.Action("SaveForm", "FormBuilder")',
                     type: 'POST',
@@ -115,7 +133,6 @@
                         if (response.success) {
                             swal("Success!", response.message, "success")
                                 .then((value) => {
-                                    // Optionally redirect or clear form
                                     window.location.href = '@Url.Action("Index", "FormBuilder")';
                                 });
                         } else {

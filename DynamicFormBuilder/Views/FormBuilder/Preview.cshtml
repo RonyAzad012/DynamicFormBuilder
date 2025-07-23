@@ -29,15 +29,32 @@
                     var field = Model.FormFields[i];
                     <div class="form-group mb-3">
                         <label for="field_@field.Id" class="@(field.IsRequired ? "required-label" : "")">@field.Label</label>
-                        <select class="form-control preview-dropdown"
-                                data-field-id="@field.Id"
-                                data-is-required="@field.IsRequired.ToString().ToLower()">
-                            <option value="">Select Item</option>
-                            @foreach (var option in field.Options)
-                            {
-                                <option value="@option" selected="@(field.SelectedOption == option)">@option</option>
-                            }
-                        </select>
+
+                        @if (field.FieldType == "generic")
+                        {
+                            <select class="form-control preview-dropdown"
+                                    data-field-id="@field.Id"
+                                    data-is-required="@field.IsRequired.ToString().ToLower()">
+                                <option value="">Select Item</option>
+                                @foreach (var option in field.Options)
+                                {
+                                    <option value="@option" selected="@(field.SelectedOption == option)">@option</option>
+                                }
+                            </select>
+                        }
+                        else if (field.FieldType == "country")
+                        {
+                            <select class="form-control preview-dropdown"
+                                    data-field-id="@field.Id"
+                                    data-is-required="@field.IsRequired.ToString().ToLower()">
+                                <option value="">-- Select a Country --</option>
+                                @foreach (var country in field.CountryOptions)
+                                {
+                                    <option value="@country" selected="@(field.SelectedOption == country)">@country</option>
+                                }
+                            </select>
+                        }
+
                         @if (field.IsRequired)
                         {
                             <small class="form-text text-danger required-field-message" style="display:none;">This field is required.</small>

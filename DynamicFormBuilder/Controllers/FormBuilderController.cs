@@ -39,6 +39,7 @@ namespace DynamicFormBuilder.Controllers
                     {
                         Label = fvm.Label,
                         IsRequired = fvm.IsRequired,
+                        FieldType = fvm.FieldType, // NEW: Map FieldType
                         SelectedOption = fvm.SelectedOption // This will be null initially, populated on preview save
                     }).ToList()
                 };
@@ -96,7 +97,10 @@ namespace DynamicFormBuilder.Controllers
                     Label = ff.Label,
                     IsRequired = ff.IsRequired,
                     SelectedOption = ff.SelectedOption,
-                    Options = new List<string> { "Option 1", "Option 2", "Option 3" } // Ensure options are available for display
+                    FieldType = ff.FieldType, // NEW: Pass FieldType to ViewModel for preview rendering
+                    // Ensure options are available for display based on FieldType
+                    Options = new List<string> { "Option 1", "Option 2", "Option 3" }, // Generic options
+                    CountryOptions = new FormFieldViewModel().CountryOptions // All possible country options
                 }).ToList()
             };
 

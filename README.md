@@ -15,7 +15,7 @@ Before you begin, ensure you have the following installed and configured:
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/yourusername/DynamicFormBuilder.git
+   git clone https://github.com/RonyAzad012/DynamicFormBuilder.git
    cd DynamicFormBuilder
    ```
 
@@ -24,6 +24,11 @@ Before you begin, ensure you have the following installed and configured:
 
 3. **Configure the database connection:**
    - Update the connection string in `appsettings.json` to match your SQL Server instance and authentication method.
+   - Change Data Source=SAIFUL_ISLAM; to your local SQL Server instance name.
+   - Change Initial Catalog=DynamicFormBuilder; to your database name.
+   
+
+
 
 4. **Apply database migrations:**
    - Open the Package Manager Console in Visual Studio.
